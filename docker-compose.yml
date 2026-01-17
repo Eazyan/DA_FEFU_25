@@ -1,0 +1,142 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: weather_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init-databases.sh:/docker-entrypoint-initdb.d/01-init-databases.sh
+      - ./database/init.sql:/docker-entrypoint-initdb.d/02-init.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - weather_network
+
+  data_generator:
+    build: ./data_generator
+    container_name: weather_generator
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      GENERATION_INTERVAL: ${GENERATION_INTERVAL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: always
+    networks:
+      - weather_network
+
+  custom_dashboard:
+    build: ./dashboard
+    container_name: weather_dashboard
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: always
+    networks:
+      - weather_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: weather_redis
+    restart: always
+    networks:
+      - weather_network
+
+  redash_create_db:
+    image: redash/redash:latest
+    platform: linux/amd64
+    container_name: redash_create_db
+    command: create_db
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      REDASH_DATABASE_URL: ${REDASH_DATABASE_URL}
+    networks:
+      - weather_network
+    restart: "no"
+
+  redash:
+    image: redash/redash:latest
+    platform: linux/amd64
+    container_name: weather_redash
+    command: server
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      redash_create_db:
+        condition: service_completed_successfully
+    ports:
+      - "5000:5000"
+    environment:
+      REDASH_WEB_WORKERS: 2
+      REDASH_LOG_LEVEL: INFO
+      REDASH_REDIS_URL: redis://redis:6379/0
+      REDASH_DATABASE_URL: ${REDASH_DATABASE_URL}
+      REDASH_SECRET_KEY: ${REDASH_SECRET_KEY}
+      REDASH_COOKIE_SECRET: ${REDASH_COOKIE_SECRET}
+      PYTHONUNBUFFERED: 0
+    restart: always
+    networks:
+      - weather_network
+
+  redash_scheduler:
+    image: redash/redash:latest
+    platform: linux/amd64
+    container_name: weather_redash_scheduler
+    command: scheduler
+    depends_on:
+      redash:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    environment:
+      REDASH_REDIS_URL: redis://redis:6379/0
+      REDASH_DATABASE_URL: ${REDASH_DATABASE_URL}
+      REDASH_SECRET_KEY: ${REDASH_SECRET_KEY}
+      QUEUES: "celery,queries,scheduled_queries,schemas"
+      WORKERS_COUNT: 1
+    restart: always
+    networks:
+      - weather_network
+
+  redash_worker:
+    image: redash/redash:latest
+    platform: linux/amd64
+    container_name: weather_redash_worker
+    command: worker
+    depends_on:
+      redash:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    environment:
+      REDASH_REDIS_URL: redis://redis:6379/0
+      REDASH_DATABASE_URL: ${REDASH_DATABASE_URL}
+      REDASH_SECRET_KEY: ${REDASH_SECRET_KEY}
+      QUEUES: "queries,scheduled_queries,celery,schemas"
+      WORKERS_COUNT: 2
+    restart: always
+    networks:
+      - weather_network
+
+networks:
+  weather_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
