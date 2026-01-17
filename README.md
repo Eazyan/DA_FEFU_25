@@ -45,8 +45,8 @@
 
 1. **Клонировать репозиторий**
 ```bash
-git clone github.com/eazyan/da_fefu_25
-cd DA_FEFU_25
+git clone https://github.com/eazyan/da_fefu_25
+cd da_fefu_25
 ```
 
 2. **Запустить систему**
@@ -303,6 +303,32 @@ REDASH_COOKIE_SECRET=change_me_to_another_random_string
 
 ### Redash Dashboard
 ![Дашборд с подробной аналитикой](image-1.png)
+
+## Jupyter Notebook с анализом данных
+
+В проекте включен [weather_analysis.ipynb](weather_analysis.ipynb) - подробный анализ погодных данных.
+
+### Что включает notebook:
+
+1. **Подключение к базе данных** - прямые SQL запросы к PostgreSQL
+2. **Статистический анализ** - описательная статистика всех параметров
+3. **Визуализация временных рядов** - динамика температуры, влажности, давления, ветра
+4. **Корреляционный анализ** - матрица корреляций, scatter plots
+5. **Анализ погодных условий** - распределение типов погоды, box plots
+6. **Роза ветров** - визуализация направлений ветра
+7. **Суточные паттерны** - анализ изменений по часам суток
+
+### Запуск notebook:
+
+```bash
+# Установить зависимости
+pip install -r notebook_requirements.txt
+
+# Запустить Jupyter Notebook
+jupyter notebook weather_analysis.ipynb
+```
+
+**Примечание:** Убедитесь, что система запущена (`docker-compose up -d`), чтобы notebook мог подключиться к базе данных.
 
 ## Возможные проблемы
 
