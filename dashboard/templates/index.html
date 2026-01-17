@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Погодная станция - Дашборд</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/neumorphism.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>☁️ Дашборд погодной станции</h1>
+            <a href="http://localhost:5000" target="_blank" class="analytics-button">
+                📊 Подробная аналитика
+            </a>
+        </header>
+
+        <div class="connection-status status-connected" id="connectionStatus">
+            <span class="status-dot"></span>
+            <span>Подключено</span>
+        </div>
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-icon">🌡️</div>
+                <div class="metric-label">Температура</div>
+                <div class="metric-value" id="temperature">--</div>
+                <div class="metric-unit">°C</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon">💧</div>
+                <div class="metric-label">Влажность</div>
+                <div class="metric-value" id="humidity">--</div>
+                <div class="metric-unit">%</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon">🌪️</div>
+                <div class="metric-label">Давление</div>
+                <div class="metric-value" id="pressure">--</div>
+                <div class="metric-unit">гПа</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon">💨</div>
+                <div class="metric-label">Ветер</div>
+                <div class="metric-value" id="windSpeed">--</div>
+                <div class="metric-unit">м/с</div>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <div class="chart-title">Тренд температуры за 24 часа</div>
+            <canvas id="temperatureChart"></canvas>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>Текущая погода</h3>
+                <div class="weather-condition">
+                    <span class="weather-icon" id="weatherIcon">☀️</span>
+                    <div>
+                        <div id="weatherCondition" style="font-size: 24px; font-weight: 600;">Солнечно</div>
+                        <div id="windDirection" style="color: var(--text-secondary); margin-top: 5px;">Ветер: С-В</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <h3>Статистика за сутки</h3>
+                <ul class="stats-list">
+                    <li>
+                        <span class="stat-label">Минимум</span>
+                        <span class="stat-value" id="minTemp">-- °C</span>
+                    </li>
+                    <li>
+                        <span class="stat-label">Максимум</span>
+                        <span class="stat-value" id="maxTemp">-- °C</span>
+                    </li>
+                    <li>
+                        <span class="stat-label">Средняя</span>
+                        <span class="stat-value" id="avgTemp">-- °C</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            Загрузка данных...
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
