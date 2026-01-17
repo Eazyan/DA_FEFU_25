@@ -81,7 +81,7 @@ services:
       redash_create_db:
         condition: service_completed_successfully
     ports:
-      - "5000:5000"
+      - "5001:5000"
     environment:
       REDASH_WEB_WORKERS: 2
       REDASH_LOG_LEVEL: INFO
